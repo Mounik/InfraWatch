@@ -1,0 +1,7 @@
+alertmanager_version: "0.26.0"
+smtp_host: "localhost"
+smtp_from: "alerts@infrawatch.local"
+smtp_user: ""
+smtp_pass: ""
+alert_email: "admin@localhost"
+discord_webhook: ""

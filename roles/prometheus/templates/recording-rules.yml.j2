@@ -1,0 +1,12 @@
+groups:
+  - name: infrawatch-recording
+    interval: 30s
+    rules:
+      - record: instance:node_cpu_utilisation:rate5m
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+
+      - record: instance:node_memory_utilisation:ratio
+        expr: 1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)
+
+      - record: instance:node_disk_utilisation:ratio
+        expr: 1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)

@@ -1,0 +1,54 @@
+---
+- name: Create alertmanager user
+  user:
+    name: alertmanager
+    shell: /usr/sbin/nologin
+    system: yes
+    create_home: no
+
+- name: Create directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: alertmanager
+    group: alertmanager
+    mode: '0755'
+  loop:
+    - /etc/alertmanager
+    - /var/lib/alertmanager
+
+- name: Download Alertmanager
+  unarchive:
+    src: "https://github.com/prometheus/alertmanager/releases/download/v{{ alertmanager_version }}/alertmanager-{{ alertmanager_version }}.linux-amd64.tar.gz"
+    dest: /tmp
+    remote_src: yes
+
+- name: Install Alertmanager binary
+  copy:
+    src: "/tmp/alertmanager-{{ alertmanager_version }}.linux-amd64/alertmanager"
+    dest: /usr/local/bin/alertmanager
+    mode: '0755'
+    owner: root
+    group: root
+    remote_src: yes
+
+- name: Deploy config
+  template:
+    src: alertmanager.yml.j2
+    dest: /etc/alertmanager/alertmanager.yml
+    validate: '/usr/local/bin/amtool check-config %s'
+  notify: restart alertmanager
+
+- name: Deploy systemd service
+  template:
+    src: alertmanager.service.j2
+    dest: /etc/systemd/system/alertmanager.service
+  notify:
+    - reload systemd
+    - restart alertmanager
+
+- name: Start and enable Alertmanager
+  systemd:
+    name: alertmanager
+    state: started
+    enabled: yes

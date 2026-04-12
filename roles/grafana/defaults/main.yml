@@ -1,0 +1,3 @@
+---
+grafana_admin_password: "infrawatch"
+grafana_port: 3000

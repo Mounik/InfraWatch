@@ -1,0 +1,19 @@
+---
+# InfraWatch — Full stack deployment
+# Deploys: Prometheus, Grafana, Alertmanager, Loki on monitoring server
+# Plus Node Exporter on all agent servers
+
+- name: Deploy monitoring stack
+  hosts: monitoring
+  become: yes
+  roles:
+    - prometheus
+    - grafana
+    - alertmanager
+    - loki
+
+- name: Deploy monitoring agents
+  hosts: agents
+  become: yes
+  roles:
+    - node-exporter

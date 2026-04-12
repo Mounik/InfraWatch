@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>InfraWatch — Server Dashboard</title>
+    <meta charset="utf-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: #0d1117; color: #c9d1d9; padding: 2rem; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { color: #58a6ff; margin-bottom: 0.5rem; }
+        .subtitle { color: #8b949e; margin-bottom: 2rem; }
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: #161b22; border: 1px solid #30363d; padding: 1.5rem; border-radius: 8px; text-align: center; }
+        .stat-value { font-size: 2.5rem; font-weight: 700; color: #3fb950; }
+        .stat-label { color: #8b949e; font-size: 0.85rem; text-transform: uppercase; margin-top: 0.5rem; }
+        .actions { margin-bottom: 2rem; }
+        .btn { display: inline-block; padding: 0.75rem 1.5rem; background: #238636; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; }
+        .btn:hover { background: #2ea043; }
+        .servers { background: #161b22; border: 1px solid #30363d; border-radius: 8px; overflow: hidden; }
+        .server { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 1rem; padding: 1rem; border-bottom: 1px solid #21262d; align-items: center; }
+        .server:last-child { border-bottom: none; }
+        .server-name { font-weight: 600; }
+        .server-ip { color: #8b949e; font-family: monospace; font-size: 0.9rem; }
+        .server-status { display: flex; align-items: center; gap: 0.5rem; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .status-up { background: #3fb950; }
+        .status-down { background: #f85149; }
+        .status-pending { background: #d29922; }
+        .labels { display: flex; gap: 0.5rem; }
+        .label { background: #21262d; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; }
+        footer { text-align: center; color: #484f58; margin-top: 2rem; }
+        a { color: #58a6ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 InfraWatch Dashboard</h1>
+        <p class="subtitle">Monitoring {{ count }} servers</p>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value">{{ count }}</div>
+                <div class="stat-label">Total Servers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="up-count">—</div>
+                <div class="stat-label">Online</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="down-count">—</div>
+                <div class="stat-label">Offline</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="alert-count">—</div>
+                <div class="stat-label">Active Alerts</div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <a href="/add-server" class="btn">+ Add Server</a>
+        </div>
+
+        <div class="servers">
+            {% for server in servers %}
+            <div class="server" data-hostname="{{ server.hostname }}">
+                <div>
+                    <div class="server-name">{{ server.hostname }}</div>
+                    <div class="server-ip">{{ server.ip }}</div>
+                </div>
+                <div class="labels">
+                    {% for key, value in server.get('labels', {}).items() %}
+                    <span class="label">{{ key }}:{{ value }}</span>
+                    {% endfor %}
+                </div>
+                <div class="server-status">
+                    <span class="status-dot status-{{ server.get('status', 'pending') }}"></span>
+                    <span>{{ server.get('status', 'pending').upper() }}</span>
+                </div>
+            </div>
+            {% else %}
+            <div class="server">
+                <p style="color: #8b949e; text-align: center;">No servers configured. <a href="/add-server">Add your first server</a>.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <footer>
+            <p>InfraWatch v1.0.0 — <a href="https://github.com/Mounik/InfraWatch">GitHub</a></p>
+        </footer>
+    </div>
+</body>
+</html>

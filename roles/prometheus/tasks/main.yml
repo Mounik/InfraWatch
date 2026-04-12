@@ -1,0 +1,94 @@
+---
+- name: Create prometheus user
+  user:
+    name: prometheus
+    shell: /usr/sbin/nologin
+    system: yes
+    create_home: no
+
+- name: Create directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: prometheus
+    group: prometheus
+    mode: '0755'
+  loop:
+    - /etc/prometheus
+    - /var/lib/prometheus
+    - /opt/prometheus
+
+- name: Download Prometheus
+  unarchive:
+    src: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz"
+    dest: /tmp
+    remote_src: yes
+
+- name: Install Prometheus binaries
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: '0755'
+    owner: root
+    group: root
+    remote_src: yes
+  loop:
+    - { src: "/tmp/prometheus-{{ prometheus_version }}.linux-amd64/prometheus", dest: /usr/local/bin/prometheus }
+    - { src: "/tmp/prometheus-{{ prometheus_version }}.linux-amd64/promtool", dest: /usr/local/bin/promtool }
+
+- name: Install console templates
+  copy:
+    src: "/tmp/prometheus-{{ prometheus_version }}.linux-amd64/{{ item }}/"
+    dest: "/usr/local/bin/{{ item }}/"
+    remote_src: yes
+  loop:
+    - consoles
+    - console_libraries
+
+- name: Deploy Prometheus config
+  template:
+    src: prometheus.yml.j2
+    dest: /etc/prometheus/prometheus.yml
+    validate: '/usr/local/bin/promtool check config %s'
+  notify: restart prometheus
+
+- name: Deploy recording rules
+  template:
+    src: recording-rules.yml.j2
+    dest: /etc/prometheus/recording-rules.yml
+  notify: restart prometheus
+
+- name: Create file_sd directory
+  file:
+    path: /etc/prometheus/file_sd
+    state: directory
+    owner: prometheus
+    group: prometheus
+    mode: '0755'
+
+- name: Deploy initial targets file
+  template:
+    src: node-exporter-targets.json.j2
+    dest: /etc/prometheus/file_sd/node-exporter.json
+  notify: reload prometheus
+
+- name: Deploy systemd service
+  template:
+    src: prometheus.service.j2
+    dest: /etc/systemd/system/prometheus.service
+  notify:
+    - reload systemd
+    - restart prometheus
+
+- name: Start and enable Prometheus
+  systemd:
+    name: prometheus
+    state: started
+    enabled: yes
+
+- name: Open firewall port
+  ufw:
+    rule: allow
+    port: "{{ prometheus_port }}"
+    proto: tcp
+  when: ansible_os_family == "Debian"

@@ -1,0 +1,17 @@
+[
+{% for host in groups['agents'] | default([]) %}
+  {
+    "targets": ["{{ hostvars[host]['ansible_host'] }}:9100"],
+    "labels": {
+      "instance": "{{ host }}",
+{% if hostvars[host].labels is defined %}
+{% for key, value in hostvars[host].labels.items() %}
+      "{{ key }}": "{{ value }}"{% if not loop.last %},{% endif %}
+
+{% endfor %}
+{% endif %}
+    }
+  }{% if not loop.last %},{% endif %}
+
+{% endfor %}
+]
