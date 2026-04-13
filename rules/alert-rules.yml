@@ -1,5 +1,5 @@
 groups:
-  - name: infrawatch-alerts
+  - name: infrawatch-node-alerts
     interval: 30s
     rules:
       - alert: HighCPUUsage
@@ -29,6 +29,15 @@ groups:
           summary: "High memory usage on {{ $labels.instance }}"
           description: "Memory usage is above 90%"
 
+      - alert: CriticalMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.95
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical memory usage on {{ $labels.instance }}"
+          description: "Memory usage is above 95%"
+
       - alert: DiskSpaceLow
         expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) < 0.1
         for: 5m
@@ -36,7 +45,16 @@ groups:
           severity: critical
         annotations:
           summary: "Low disk space on {{ $labels.instance }}"
-          description: "Less than 10% disk space remaining"
+          description: "Less than 10% disk space remaining on {{ $labels.mountpoint }}"
+
+      - alert: DiskSpaceWarning
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) < 0.2
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk space warning on {{ $labels.instance }}"
+          description: "Less than 20% disk space remaining on {{ $labels.mountpoint }}"
 
       - alert: NodeDown
         expr: up{job="node-exporter"} == 0
@@ -46,3 +64,198 @@ groups:
         annotations:
           summary: "Node {{ $labels.instance }} is down"
           description: "Node exporter is not responding"
+
+      - alert: HighLoadAverage
+        expr: node_load15 / count(node_cpu_seconds_total{mode="idle"}) without(cpu, mode) > 1.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High load average on {{ $labels.instance }}"
+          description: "15-minute load average exceeds 1.5x CPU count"
+
+      - alert: SwapUsage
+        expr: (1 - (node_memory_SwapFree_bytes / node_memory_SwapTotal_bytes)) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High swap usage on {{ $labels.instance }}"
+          description: "Swap usage is above 50%"
+
+      - alert: FileSystemFullIn24h
+        expr: predict_linear(node_filesystem_avail_bytes[1h], 24 * 3600) < 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Filesystem will fill within 24h on {{ $labels.instance }}"
+          description: "Predicted to run out of space on {{ $labels.mountpoint }} within 24h"
+
+  - name: infrawatch-docker-alerts
+    interval: 30s
+    rules:
+      - alert: ContainerDown
+        expr: time() - container_last_exit_time > 60
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Container {{ $labels.name }} is down on {{ $labels.instance }}"
+          description: "Container has exited more than 60 seconds ago"
+
+      - alert: ContainerOOM
+        expr: rate(container_oom_events_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Container {{ $labels.name }} OOM killed"
+          description: "Out of memory event detected for container"
+
+      - alert: ContainerHighCPU
+        expr: rate(container_cpu_usage_seconds_total{name!=""}[5m]) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container {{ $labels.name }} high CPU on {{ $labels.instance }}"
+          description: "Container CPU usage above 80% for 10 minutes"
+
+      - alert: ContainerHighMemory
+        expr: container_memory_working_set_bytes / container_spec_memory_limit_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container {{ $labels.name }} high memory on {{ $labels.instance }}"
+          description: "Container memory usage above 90% of limit"
+
+      - alert: ContainerRestartLoop
+        expr: rate(container_restart_count[15m]) * 60 > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container {{ $labels.name }} restarting on {{ $labels.instance }}"
+          description: "Container is restarting more than 2 times per minute"
+
+  - name: infrawatch-nginx-alerts
+    interval: 30s
+    rules:
+      - alert: Nginx5xxSpike
+        expr: sum(rate(nginx_http_requests_total{status=~"5.."}[5m])) / sum(rate(nginx_http_requests_total[5m])) * 100 > 5
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High 5xx error rate on {{ $labels.instance }}"
+          description: "5xx error rate is above 5% for more than 2 minutes"
+
+      - alert: Nginx4xxSpike
+        expr: sum(rate(nginx_http_requests_total{status=~"4.."}[5m])) / sum(rate(nginx_http_requests_total[5m])) * 100 > 20
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High 4xx error rate on {{ $labels.instance }}"
+          description: "4xx error rate is above 20% for more than 5 minutes"
+
+      - alert: NginxHighConnections
+        expr: nginx_connections_active > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High active connections on {{ $labels.instance }}"
+          description: "Nginx has more than 1000 active connections"
+
+  - name: infrawatch-ssl-alerts
+    interval: 1h
+    rules:
+      - alert: SSLCertExpiringSoon
+        expr: ssl_cert_not_after - time() / 86400 < 30
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "SSL certificate on {{ $labels.instance }} expires in {{ $value }} days"
+          description: "SSL certificate will expire within 30 days"
+
+      - alert: SSLCertExpiringCritical
+        expr: ssl_cert_not_after - time() / 86400 < 7
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "SSL certificate on {{ $labels.instance }} expires in {{ $value }} days"
+          description: "SSL certificate will expire within 7 days"
+
+  - name: infrawatch-network-alerts
+    interval: 30s
+    rules:
+      - alert: HighNetworkIn
+        expr: rate(node_network_receive_bytes_total{device!="lo"}[5m]) > 100 * 1024 * 1024
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High network inbound on {{ $labels.instance }}"
+          description: "Receiving over 100 MB/s on {{ $labels.device }}"
+
+      - alert: HighNetworkOut
+        expr: rate(node_network_transmit_bytes_total{device!="lo"}[5m]) > 100 * 1024 * 1024
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High network outbound on {{ $labels.instance }}"
+          description: "Transmitting over 100 MB/s on {{ $labels.device }}"
+
+      - alert: NetworkErrors
+        expr: rate(node_network_receive_errs_total[5m]) > 10 or rate(node_network_transmit_errs_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Network errors on {{ $labels.instance }} {{ $labels.device }}"
+          description: "Network interface experiencing errors"
+
+  - name: infrawatch-postgresql-alerts
+    interval: 30s
+    rules:
+      - alert: PostgreSQLTooManyConnections
+        expr: pg_stat_activity_count > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PostgreSQL too many connections on {{ $labels.instance }}"
+          description: "More than 80 active connections"
+
+      - alert: PostgreSQLDown
+        expr: pg_up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL is down on {{ $labels.instance }}"
+          description: "PostgreSQL exporter cannot connect to the database"
+
+      - alert: PostgreSQLSlowQueries
+        expr: pg_stat_activity_max_tx_duration > 300
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Long running query on {{ $labels.instance }}"
+          description: "Query running for more than 5 minutes"
+
+      - alert: PostgreSQLReplicationLag
+        expr: pg_replication_lag > 60
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Replication lag on {{ $labels.instance }}"
+          description: "Replication lag exceeds 60 seconds"

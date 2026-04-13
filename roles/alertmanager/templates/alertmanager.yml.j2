@@ -29,10 +29,24 @@ receivers:
         headers:
           Subject: '[CRITICAL] {{ "{{" }} .GroupLabels.alertname {{ "}}" }}'
 {% if discord_webhook %}
-    discord_configs:
-      - webhook_url: '{{ discord_webhook }}'
+    webhook_configs:
+      - url: '{{ discord_webhook }}'
+        send_resolved: true
 {% endif %}
 
   - name: 'warning'
     email_configs:
       - to: '{{ alert_email }}'
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'instance']
+
+  - source_match:
+      alertname: 'NodeDown'
+    target_match_re:
+      alertname: '.*'
+    equal: ['instance']
