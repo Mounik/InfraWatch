@@ -1,0 +1,122 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Docker Containers",
+    "tags": ["infrawatch", "docker", "containers"],
+    "timezone": "browser",
+    "schemaVersion": 36,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Running Containers",
+        "type": "stat",
+        "targets": [{
+          "expr": "count(container_tasks_state{state=\"running\"}) or vector(0)",
+          "legendFormat": "running"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "none",
+            "thresholds": {
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 50, "color": "yellow"},
+                {"value": 100, "color": "red"}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Container CPU Usage",
+        "type": "timeseries",
+        "targets": [{
+          "expr": "rate(container_cpu_usage_seconds_total{name!=\"\"}[5m]) * 100",
+          "legendFormat": "{{name}}"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "custom": {"fillOpacity": 10}
+          }
+        },
+        "gridPos": {"h": 8, "w": 18, "x": 6, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Container Memory Usage",
+        "type": "timeseries",
+        "targets": [{
+          "expr": "container_memory_working_set_bytes{name!=\"\"}",
+          "legendFormat": "{{name}}"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "bytes",
+            "custom": {"fillOpacity": 10}
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+      },
+      {
+        "id": 4,
+        "title": "Container Network I/O",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(container_network_receive_bytes_total{name!=\"\"}[5m])",
+            "legendFormat": "{{name}} RX"
+          },
+          {
+            "expr": "rate(container_network_transmit_bytes_total{name!=\"\"}[5m])",
+            "legendFormat": "{{name}} TX"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "Bps",
+            "custom": {"fillOpacity": 10}
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+      },
+      {
+        "id": 5,
+        "title": "Containers by Status",
+        "type": "piechart",
+        "targets": [{
+          "expr": "count by (state) (container_tasks_state)",
+          "legendFormat": "{{state}}"
+        }],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16}
+      },
+      {
+        "id": 6,
+        "title": "Container Restarts",
+        "type": "timeseries",
+        "targets": [{
+          "expr": "rate(container_restart_count{name!=\"\"}[15m]) * 60",
+          "legendFormat": "{{name}}"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "opm",
+            "custom": {"fillOpacity": 10}
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16}
+      }
+    ],
+    "time": {"from": "now-1h", "to": "now"},
+    "templating": {
+      "list": [{
+        "name": "instance",
+        "type": "query",
+        "query": "label_values(container_cpu_usage_seconds_total, instance)"
+      }]
+    }
+  }
+}

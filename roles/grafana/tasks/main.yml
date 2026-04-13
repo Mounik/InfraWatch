@@ -30,18 +30,23 @@
     dest: /etc/grafana/grafana.ini
   notify: restart grafana
 
-- name: Create dashboards directory
+- name: Create provisioning directories
   file:
-    path: /var/lib/grafana/dashboards
+    path: "{{ item }}"
     state: directory
     owner: grafana
     group: grafana
     mode: '0755'
+  loop:
+    - /etc/grafana/provisioning
+    - /etc/grafana/provisioning/datasources
+    - /etc/grafana/provisioning/dashboards
+    - /var/lib/grafana/dashboards
 
 - name: Deploy dashboards
   copy:
-    src: "{{ item }}"
-    dest: /var/lib/grafana/dashboards/
+    src: "{{ playbook_dir }}/../config/dashboards/{{ item }}"
+    dest: "/var/lib/grafana/dashboards/{{ item }}"
     owner: grafana
     group: grafana
     mode: '0644'
@@ -49,6 +54,7 @@
     - node-overview.json
     - docker-containers.json
     - ssl-certificates.json
+    - nginx.json
   notify: restart grafana
 
 - name: Configure provisioning
