@@ -58,6 +58,15 @@
     dest: /etc/prometheus/recording-rules.yml
   notify: restart prometheus
 
+- name: Deploy alert rules
+  copy:
+    src: "{{ playbook_dir }}/../rules/alert-rules.yml"
+    dest: /etc/prometheus/alert-rules.yml
+    owner: prometheus
+    group: prometheus
+    mode: '0644'
+  notify: reload prometheus
+
 - name: Create file_sd directory
   file:
     path: /etc/prometheus/file_sd
