@@ -19,7 +19,7 @@
 
 - name: Download Alertmanager
   unarchive:
-    src: "https://github.com/prometheus/alertmanager/releases/download/v{{ alertmanager_version }}/alertmanager-{{ alertmanager_version }}.linux-amd64.tar.gz"
+    src: "https://github.com/prometheus/alertmanager/releases/download/v{{ alertmanager_version }}/alertmanager-{{ alertmanager_version }}.linux-{{ alertmanager_arch }}.tar.gz"
     dest: /tmp
     remote_src: yes
     checksum: "{{ alertmanager_checksum }}"
@@ -27,14 +27,14 @@
 
 - name: Download Alertmanager (no checksum)
   unarchive:
-    src: "https://github.com/prometheus/alertmanager/releases/download/v{{ alertmanager_version }}/alertmanager-{{ alertmanager_version }}.linux-amd64.tar.gz"
+    src: "https://github.com/prometheus/alertmanager/releases/download/v{{ alertmanager_version }}/alertmanager-{{ alertmanager_version }}.linux-{{ alertmanager_arch }}.tar.gz"
     dest: /tmp
     remote_src: yes
   when: alertmanager_checksum | length == 0
 
 - name: Install Alertmanager binary
   copy:
-    src: "/tmp/alertmanager-{{ alertmanager_version }}.linux-amd64/alertmanager"
+    src: "/tmp/alertmanager-{{ alertmanager_version }}.linux-{{ alertmanager_arch }}/alertmanager"
     dest: /usr/local/bin/alertmanager
     mode: '0755'
     owner: root

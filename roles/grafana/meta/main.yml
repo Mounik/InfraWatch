@@ -1,0 +1,18 @@
+galaxy_info:
+  author: Mounik
+  description: Deploy Grafana visualization server
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Ubuntu
+      versions: ["focal", "jammy"]
+    - name: Debian
+      versions: ["bullseye", "bookworm"]
+    - name: EL
+      versions: ["8", "9"]
+  galaxy_tags:
+    - monitoring
+    - grafana
+    - dashboards
+
+dependencies: []

@@ -20,7 +20,7 @@
 
 - name: Download Prometheus
   unarchive:
-    src: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz"
+    src: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-{{ prometheus_arch }}.tar.gz"
     dest: /tmp
     remote_src: yes
     checksum: "{{ prometheus_checksum }}"
@@ -28,7 +28,7 @@
 
 - name: Download Prometheus (no checksum)
   unarchive:
-    src: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz"
+    src: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-{{ prometheus_arch }}.tar.gz"
     dest: /tmp
     remote_src: yes
   when: prometheus_checksum | length == 0
@@ -42,12 +42,12 @@
     group: root
     remote_src: yes
   loop:
-    - { src: "/tmp/prometheus-{{ prometheus_version }}.linux-amd64/prometheus", dest: /usr/local/bin/prometheus }
-    - { src: "/tmp/prometheus-{{ prometheus_version }}.linux-amd64/promtool", dest: /usr/local/bin/promtool }
+    - { src: "/tmp/prometheus-{{ prometheus_version }}.linux-{{ prometheus_arch }}/prometheus", dest: /usr/local/bin/prometheus }
+    - { src: "/tmp/prometheus-{{ prometheus_version }}.linux-{{ prometheus_arch }}/promtool", dest: /usr/local/bin/promtool }
 
 - name: Install console templates
   copy:
-    src: "/tmp/prometheus-{{ prometheus_version }}.linux-amd64/{{ item }}/"
+    src: "/tmp/prometheus-{{ prometheus_version }}.linux-{{ prometheus_arch }}/{{ item }}/"
     dest: "/usr/local/bin/{{ item }}/"
     remote_src: yes
   loop:

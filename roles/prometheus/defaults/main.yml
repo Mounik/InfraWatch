@@ -1,3 +1,4 @@
 prometheus_version: "2.48.0"
 prometheus_port: 9090
 prometheus_checksum: "{{ vault_prometheus_checksum | default('') }}"
+prometheus_arch: "{{ 'amd64' if ansible_architecture == 'x86_64' else ('arm64' if ansible_architecture == 'aarch64' else ansible_architecture) }}"

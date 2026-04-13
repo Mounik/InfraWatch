@@ -5,7 +5,7 @@
 set -e
 
 NODE_EXPORTER_VERSION="1.7.0"
-ARCH="amd64"
+ARCH=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
 
 echo "=== InfraWatch Agent Bootstrap ==="
 
