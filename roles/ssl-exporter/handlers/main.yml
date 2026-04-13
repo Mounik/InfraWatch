@@ -1,0 +1,9 @@
+---
+- name: reload systemd
+  systemd:
+    daemon_reload: yes
+
+- name: restart ssl_exporter
+  systemd:
+    name: ssl_exporter
+    state: restarted

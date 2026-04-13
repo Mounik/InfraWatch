@@ -1,0 +1,64 @@
+---
+- name: Create ssl_exporter user
+  user:
+    name: ssl_exporter
+    shell: /usr/sbin/nologin
+    system: yes
+    create_home: no
+
+- name: Download SSL Exporter
+  unarchive:
+    src: "https://github.com/prometheus-community/ssl_exporter/releases/download/v{{ ssl_exporter_version }}/ssl_exporter-{{ ssl_exporter_version }}.linux-amd64.tar.gz"
+    dest: /tmp
+    remote_src: yes
+    checksum: "{{ ssl_exporter_checksum }}"
+  when: ssl_exporter_checksum | length > 0
+
+- name: Download SSL Exporter (no checksum)
+  unarchive:
+    src: "https://github.com/prometheus-community/ssl_exporter/releases/download/v{{ ssl_exporter_version }}/ssl_exporter-{{ ssl_exporter_version }}.linux-amd64.tar.gz"
+    dest: /tmp
+    remote_src: yes
+  when: ssl_exporter_checksum | length == 0
+
+- name: Install SSL Exporter binary
+  copy:
+    src: "/tmp/ssl_exporter-{{ ssl_exporter_version }}.linux-amd64/ssl_exporter"
+    dest: /usr/local/bin/ssl_exporter
+    mode: '0755'
+    owner: root
+    group: root
+    remote_src: yes
+
+- name: Create config directory
+  file:
+    path: /etc/ssl_exporter
+    state: directory
+    mode: '0755'
+
+- name: Deploy SSL Exporter config
+  template:
+    src: ssl_exporter.yml.j2
+    dest: /etc/ssl_exporter/ssl_exporter.yml
+  notify: restart ssl_exporter
+
+- name: Deploy systemd service
+  template:
+    src: ssl_exporter.service.j2
+    dest: /etc/systemd/system/ssl_exporter.service
+  notify:
+    - reload systemd
+    - restart ssl_exporter
+
+- name: Start and enable SSL Exporter
+  systemd:
+    name: ssl_exporter
+    state: started
+    enabled: yes
+
+- name: Open firewall port
+  ufw:
+    rule: allow
+    port: "{{ ssl_exporter_port }}"
+    proto: tcp
+  when: ansible_os_family == "Debian"

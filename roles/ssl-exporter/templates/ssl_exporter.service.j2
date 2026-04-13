@@ -1,0 +1,18 @@
+[Unit]
+Description=SSL Exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=ssl_exporter
+Group=ssl_exporter
+Type=simple
+ExecStart=/usr/local/bin/ssl_exporter \
+  --config.file=/etc/ssl_exporter/ssl_exporter.yml \
+  --web.listen-address=:{{ ssl_exporter_port }}
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
