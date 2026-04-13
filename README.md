@@ -1,4 +1,5 @@
 # InfraWatch 📊
+![CI](https://github.com/Mounik/InfraWatch/actions/workflows/ci.yml/badge.svg)
 
 **Production-ready monitoring stack — deploy agents, dashboards & alerts in minutes**
 
