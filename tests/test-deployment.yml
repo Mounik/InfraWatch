@@ -1,0 +1,22 @@
+---
+# InfraWatch -- Test deployment playbook
+# Validates all roles in check mode without making changes
+# Usage: ansible-playbook -i tests/test-inventory.yml tests/test-deployment.yml --check
+
+- name: Test monitoring stack deployment
+  hosts: monitoring
+  become: yes
+  gather_facts: no
+  roles:
+    - prometheus
+    - grafana
+    - alertmanager
+    - loki
+    - ssl-exporter
+
+- name: Test agent deployment
+  hosts: agents
+  become: yes
+  gather_facts: no
+  roles:
+    - node-exporter

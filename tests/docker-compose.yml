@@ -1,0 +1,59 @@
+version: "3.8"
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../../config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../../rules:/etc/prometheus/rules:ro
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=1d"
+
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    ports:
+      - "9093:9093"
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: infrawatch
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    volumes:
+      - ../../config/dashboards:/var/lib/grafana/dashboards:ro
+
+  loki:
+    image: grafana/loki:2.9.3
+    ports:
+      - "3100:3100"
+
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host:ro,rslave
+    command:
+      - "--path.rootfs=/host"
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+
+  webui:
+    build:
+      context: ../../webui
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      SECRET_KEY: test-secret-key
+      PROMETHEUS_URL: http://prometheus:9090
+      ALERTMANAGER_URL: http://alertmanager:9093
+      WEBUI_USERNAME: admin
+      WEBUI_PASSWORD: infrawatch
