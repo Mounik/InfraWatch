@@ -1,0 +1,71 @@
+---
+- name: Create loki user
+  user:
+    name: loki
+    shell: /usr/sbin/nologin
+    system: yes
+    create_home: no
+
+- name: Create directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: loki
+    group: loki
+    mode: '0755'
+  loop:
+    - /etc/loki
+    - /var/lib/loki
+    - /var/lib/loki/chunks
+    - /var/lib/loki/index
+
+- name: Download Loki
+  unarchive:
+    src: "https://github.com/grafana/loki/releases/download/v{{ loki_version }}/loki-linux-amd64.zip"
+    dest: /tmp
+    remote_src: yes
+    checksum: "{{ loki_checksum }}"
+  when: loki_checksum | length > 0
+
+- name: Download Loki (no checksum)
+  unarchive:
+    src: "https://github.com/grafana/loki/releases/download/v{{ loki_version }}/loki-linux-amd64.zip"
+    dest: /tmp
+    remote_src: yes
+  when: loki_checksum | length == 0
+
+- name: Install Loki binary
+  copy:
+    src: /tmp/loki-linux-amd64
+    dest: /usr/local/bin/loki
+    mode: '0755'
+    owner: root
+    group: root
+    remote_src: yes
+
+- name: Deploy Loki config
+  template:
+    src: loki-config.yml.j2
+    dest: /etc/loki/loki-config.yml
+  notify: restart loki
+
+- name: Deploy systemd service
+  template:
+    src: loki.service.j2
+    dest: /etc/systemd/system/loki.service
+  notify:
+    - reload systemd
+    - restart loki
+
+- name: Start and enable Loki
+  systemd:
+    name: loki
+    state: started
+    enabled: yes
+
+- name: Open firewall port
+  ufw:
+    rule: allow
+    port: "{{ loki_port }}"
+    proto: tcp
+  when: ansible_os_family == "Debian"

@@ -1,0 +1,4 @@
+loki_version: "2.9.3"
+loki_port: 3100
+loki_retention_period: "744h"
+loki_checksum: "{{ vault_loki_checksum | default('') }}"
