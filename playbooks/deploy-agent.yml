@@ -1,5 +1,5 @@
 ---
-# InfraWatch — Deploy/redeploy agent only
+# InfraWatch -- Deploy/redeploy agent only
 # Usage: ansible-playbook -i inventory/hosts.yml playbooks/deploy-agent.yml --limit web01
 
 - name: Deploy monitoring agent
@@ -8,4 +8,4 @@
   roles:
     - node-exporter
   vars:
-    infrawatch_server: "{{ groups['monitoring'][0] }}"
+    infrawatch_server: "{{ groups['monitoring'][0] | default(omit) }}"

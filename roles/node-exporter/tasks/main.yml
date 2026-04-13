@@ -11,6 +11,15 @@
     src: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
     dest: /tmp
     remote_src: yes
+    checksum: "{{ node_exporter_checksum }}"
+  when: node_exporter_checksum | length > 0
+
+- name: Download Node Exporter (no checksum)
+  unarchive:
+    src: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+    dest: /tmp
+    remote_src: yes
+  when: node_exporter_checksum | length == 0
 
 - name: Install Node Exporter binary
   copy:

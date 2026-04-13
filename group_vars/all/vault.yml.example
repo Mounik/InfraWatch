@@ -1,0 +1,26 @@
+# InfraWatch Ansible Vault Variables
+# Copy this file to group_vars/monitoring/vault.yml and fill in your secrets
+# Then encrypt with: ansible-vault encrypt group_vars/monitoring/vault.yml
+
+# Grafana
+vault_grafana_admin_password: "CHANGE_ME_strong_password"
+vault_grafana_secret_key: "CHANGE_ME_random_secret_key_32chars"
+
+# Prometheus binary checksums (sha256)
+vault_prometheus_checksum: ""
+vault_node_exporter_checksum: ""
+vault_alertmanager_checksum: ""
+
+# Alertmanager SMTP
+vault_smtp_host: "smtp.gmail.com"
+vault_smtp_from: "alerts@example.com"
+vault_smtp_user: "alerts@example.com"
+vault_smtp_pass: "CHANGE_ME_app_password"
+
+# Alert destinations
+vault_alert_email: "ops@example.com"
+vault_discord_webhook: ""
+
+# Web UI
+# vault_webui_username: "admin"
+# vault_webui_password: "CHANGE_ME_strong_password"

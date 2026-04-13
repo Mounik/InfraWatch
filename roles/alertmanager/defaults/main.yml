@@ -1,7 +1,10 @@
+---
 alertmanager_version: "0.26.0"
-smtp_host: "localhost"
-smtp_from: "alerts@infrawatch.local"
-smtp_user: ""
-smtp_pass: ""
-alert_email: "admin@localhost"
-discord_webhook: ""
+alertmanager_port: 9093
+alertmanager_checksum: "{{ vault_alertmanager_checksum | default('') }}"
+smtp_host: "{{ vault_smtp_host | default('localhost') }}"
+smtp_from: "{{ vault_smtp_from | default('alerts@infrawatch.local') }}"
+smtp_user: "{{ vault_smtp_user | default('') }}"
+smtp_pass: "{{ vault_smtp_pass | default('') }}"
+alert_email: "{{ vault_alert_email | default('admin@localhost') }}"
+discord_webhook: "{{ vault_discord_webhook | default('') }}"

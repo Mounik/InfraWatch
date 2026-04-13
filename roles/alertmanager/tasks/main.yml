@@ -22,6 +22,15 @@
     src: "https://github.com/prometheus/alertmanager/releases/download/v{{ alertmanager_version }}/alertmanager-{{ alertmanager_version }}.linux-amd64.tar.gz"
     dest: /tmp
     remote_src: yes
+    checksum: "{{ alertmanager_checksum }}"
+  when: alertmanager_checksum | length > 0
+
+- name: Download Alertmanager (no checksum)
+  unarchive:
+    src: "https://github.com/prometheus/alertmanager/releases/download/v{{ alertmanager_version }}/alertmanager-{{ alertmanager_version }}.linux-amd64.tar.gz"
+    dest: /tmp
+    remote_src: yes
+  when: alertmanager_checksum | length == 0
 
 - name: Install Alertmanager binary
   copy:

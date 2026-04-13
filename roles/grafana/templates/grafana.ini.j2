@@ -20,7 +20,7 @@ path = grafana.db
 [security]
 admin_user = admin
 admin_password = {{ grafana_admin_password }}
-secret_key = infrawatch-secret-key-change-in-production
+secret_key = {{ grafana_secret_key }}
 
 [users]
 allow_sign_up = false

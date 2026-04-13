@@ -23,6 +23,15 @@
     src: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz"
     dest: /tmp
     remote_src: yes
+    checksum: "{{ prometheus_checksum }}"
+  when: prometheus_checksum | length > 0
+
+- name: Download Prometheus (no checksum)
+  unarchive:
+    src: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz"
+    dest: /tmp
+    remote_src: yes
+  when: prometheus_checksum | length == 0
 
 - name: Install Prometheus binaries
   copy:
