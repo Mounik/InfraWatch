@@ -52,3 +52,10 @@
     name: alertmanager
     state: started
     enabled: yes
+
+- name: Open firewall port
+  ufw:
+    rule: allow
+    port: "{{ alertmanager_port | default(9093) }}"
+    proto: tcp
+  when: ansible_os_family == "Debian"
