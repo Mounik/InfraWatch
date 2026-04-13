@@ -19,10 +19,15 @@ from flask import (
     flash,
     session,
 )
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import requests
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", secrets.token_hex(32))
+app.config["PERMANENT_SESSION_LIFETIME"] = 43200
+
+limiter = Limiter(get_remote_address, app=app, default_limits=["200 per minute"])
 
 DATA_DIR = Path(os.environ.get("INFRAWATCH_DATA", "/opt/infrawatch/data"))
 DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -110,6 +115,7 @@ def inject_csrf():
 
 
 @app.route("/login", methods=["GET", "POST"])
+@limiter.limit("10 per minute")
 def login():
     if request.method == "POST":
         if (

@@ -11,6 +11,7 @@
     - grafana
     - alertmanager
     - loki
+    - ssl-exporter
 
 - name: Deploy monitoring agents
   hosts: agents
