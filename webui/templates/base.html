@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}InfraWatch{% endblock %}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: #0d1117; color: #c9d1d9; padding: 2rem; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        nav { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #30363d; }
+        nav h1 { color: #58a6ff; font-size: 1.25rem; margin: 0; }
+        nav a { color: #8b949e; text-decoration: none; font-size: 0.9rem; }
+        nav a:hover { color: #58a6ff; }
+        nav a.active { color: #c9d1d9; font-weight: 600; }
+        .btn { display: inline-block; padding: 0.75rem 1.5rem; background: #238636; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; border: none; cursor: pointer; font-size: 0.9rem; }
+        .btn:hover { background: #2ea043; }
+        .btn-danger { background: #da3633; }
+        .btn-danger:hover { background: #f85149; }
+        .btn-secondary { background: #30363d; }
+        .btn-secondary:hover { background: #484f58; }
+        .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; color: #8b949e; font-size: 0.85rem; margin-bottom: 0.25rem; text-transform: uppercase; }
+        .form-group input, .form-group select { width: 100%; padding: 0.75rem; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; font-size: 0.95rem; }
+        .form-group input:focus { outline: none; border-color: #58a6ff; }
+        footer { text-align: center; color: #484f58; margin-top: 2rem; }
+        a { color: #58a6ff; }
+        .flash { padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 1rem; }
+        .flash-success { background: #1b4332; border: 1px solid #238636; }
+        .flash-error { background: #490418; border: 1px solid #da3633; }
+        {% block extra_style %}{% endblock %}
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <h1><a href="/" style="color: #58a6ff; text-decoration: none;">InfraWatch</a></h1>
+            <a href="/" class="{% if request.path == '/' %}active{% endif %}">Dashboard</a>
+            <a href="/add-server" class="{% if request.path == '/add-server' %}active{% endif %}">Add Server</a>
+            <a href="/alerts" class="{% if request.path == '/alerts' %}active{% endif %}">Alerts</a>
+        </nav>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+        <footer>
+            <p>InfraWatch v1.0.0 -- <a href="https://github.com/Mounik/InfraWatch">GitHub</a></p>
+        </footer>
+    </div>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

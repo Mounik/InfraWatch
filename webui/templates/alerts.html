@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}InfraWatch -- Alerts{% endblock %}
+
+{% block extra_style %}
+.alerts-table { width: 100%; border-collapse: collapse; }
+.alerts-table th { text-align: left; padding: 0.75rem; color: #8b949e; font-size: 0.85rem; text-transform: uppercase; border-bottom: 1px solid #30363d; }
+.alerts-table td { padding: 0.75rem; border-bottom: 1px solid #21262d; }
+.severity-critical { color: #f85149; font-weight: 700; }
+.severity-warning { color: #d29922; font-weight: 700; }
+.severity-info { color: #58a6ff; }
+.state-firing { background: #490418; color: #f85149; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; }
+.state-pending { background: #341a00; color: #d29922; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; }
+.state-inactive { background: #1b4332; color: #3fb950; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
+.stat-card { background: #161b22; border: 1px solid #30363d; padding: 1.5rem; border-radius: 8px; text-align: center; }
+.stat-value { font-size: 2.5rem; font-weight: 700; }
+.stat-label { color: #8b949e; font-size: 0.85rem; text-transform: uppercase; margin-top: 0.5rem; }
+{% endblock %}
+
+{% block content %}
+<h2>Active Alerts</h2>
+
+<div class="stats">
+    <div class="stat-card">
+        <div class="stat-value" style="color: #f85149;" id="firing-count">{{ firing_count | default(0) }}</div>
+        <div class="stat-label">Firing</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color: #d29922;" id="pending-count">{{ pending_count | default(0) }}</div>
+        <div class="stat-label">Pending</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color: #3fb950;" id="resolved-count">{{ resolved_count | default(0) }}</div>
+        <div class="stat-label">Resolved</div>
+    </div>
+</div>
+
+<div class="card">
+    {% if alerts %}
+    <table class="alerts-table">
+        <thead>
+            <tr>
+                <th>Severity</th>
+                <th>Alert</th>
+                <th>Instance</th>
+                <th>State</th>
+                <th>Summary</th>
+                <th>Since</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for alert in alerts %}
+            <tr>
+                <td class="severity-{{ alert.labels.severity | default('info') }}">{{ alert.labels.severity | default('info') | upper }}</td>
+                <td>{{ alert.labels.alertname }}</td>
+                <td>{{ alert.labels.instance | default('--') }}</td>
+                <td><span class="state-{{ alert.state | default('inactive') }}">{{ alert.state | default('inactive') | upper }}</span></td>
+                <td>{{ alert.annotations.summary | default('--') }}</td>
+                <td>{{ alert.activeAt | default('--') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; color: #8b949e; padding: 2rem;">No active alerts -- all systems operational</p>
+    {% endif %}
+</div>
+{% endblock %}
