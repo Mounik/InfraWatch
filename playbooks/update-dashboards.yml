@@ -1,0 +1,35 @@
+---
+# InfraWatch -- Update Grafana dashboards
+# Usage: ansible-playbook -i inventory/hosts.yml playbooks/update-dashboards.yml
+
+- name: Update Grafana dashboards
+  hosts: monitoring
+  become: yes
+  tasks:
+    - name: Create dashboards directory
+      file:
+        path: /var/lib/grafana/dashboards
+        state: directory
+        owner: grafana
+        group: grafana
+        mode: '0755'
+
+    - name: Deploy dashboards
+      copy:
+        src: "{{ playbook_dir }}/../config/dashboards/{{ item }}"
+        dest: "/var/lib/grafana/dashboards/{{ item }}"
+        owner: grafana
+        group: grafana
+        mode: '0644'
+      loop:
+        - node-overview.json
+        - docker-containers.json
+        - ssl-certificates.json
+        - nginx.json
+      notify: restart grafana
+
+  handlers:
+    - name: restart grafana
+      systemd:
+        name: grafana-server
+        state: restarted

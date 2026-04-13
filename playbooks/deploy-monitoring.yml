@@ -1,0 +1,12 @@
+---
+# InfraWatch -- Deploy monitoring server stack only (no agents)
+# Usage: ansible-playbook -i inventory/hosts.yml playbooks/deploy-monitoring.yml
+
+- name: Deploy monitoring stack
+  hosts: monitoring
+  become: yes
+  roles:
+    - prometheus
+    - grafana
+    - alertmanager
+    - loki
